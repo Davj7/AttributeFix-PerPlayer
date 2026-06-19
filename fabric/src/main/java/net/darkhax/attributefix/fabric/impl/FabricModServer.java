@@ -13,5 +13,6 @@ public class FabricModServer implements DedicatedServerModInitializer {
                 AttributeFixMod.getInstance().init();
             }
         });
+        FabricCommonEvents.register();
     }
 }

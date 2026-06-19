@@ -28,9 +28,11 @@ import java.util.OptionalDouble;
 @Mixin(AttributeInstance.class)
 public abstract class MixinAttributeInstance implements EntityOwned {
 
-    // NOTE: verify against your mappings — 1.21.1 Mojmap exposes `Holder<Attribute> getAttribute()`.
     @Shadow
     public abstract Holder<Attribute> getAttribute();
+
+    @Shadow
+    protected abstract void setDirty();
 
     @Unique
     private LivingEntity attributefix$owner;
@@ -43,6 +45,11 @@ public abstract class MixinAttributeInstance implements EntityOwned {
     @Override
     public LivingEntity attributefix$getOwner() {
         return this.attributefix$owner;
+    }
+
+    @Override
+    public void attributefix$markDirty() {
+        this.setDirty();
     }
 
     // `calculateValue` returns a primitive double, so the CIR is typed <Double> and we use

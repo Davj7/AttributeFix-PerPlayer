@@ -21,4 +21,11 @@ public interface EntityOwned {
      * @return The owning entity, or null if it was never set.
      */
     LivingEntity attributefix$getOwner();
+
+    /**
+     * Forces the implementor to recompute its cached value on next read. Only meaningful on
+     * {@code AttributeInstance}; the default no-op lets {@code AttributeMap} share this interface
+     * without caring about it. Used after a limit changes so the new cap applies immediately.
+     */
+    default void attributefix$markDirty() {}
 }

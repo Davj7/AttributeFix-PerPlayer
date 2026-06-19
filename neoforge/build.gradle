@@ -19,6 +19,11 @@ neoForge {
         client {
             client()
         }
+        client2 {
+            client()
+            programArgument '--username'
+            programArgument 'Bob'
+        }
         server {
             server()
         }
