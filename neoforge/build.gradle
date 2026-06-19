@@ -35,6 +35,11 @@ neoForge {
     }
 }
 
+// Keep the headless GameTests in dev (loaded from source set output) but out of the released jar.
+jar {
+    exclude 'net/darkhax/attributefix/impl/AttributeLimitGameTests*'
+}
+
 dependencies {
     implementation group: 'net.darkhax.bookshelf', name: 'bookshelf-neoforge-1.21.1', version: bookshelf_version
     implementation group: 'net.darkhax.pricklemc', name: 'prickle-neoforge-1.21.1', version: prickle_version
