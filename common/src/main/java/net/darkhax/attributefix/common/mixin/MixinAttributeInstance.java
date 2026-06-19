@@ -1,5 +1,6 @@
 package net.darkhax.attributefix.common.mixin;
 
+import net.darkhax.attributefix.common.impl.AttributeLimit;
 import net.darkhax.attributefix.common.impl.EntityOwned;
 import net.darkhax.attributefix.common.impl.PlayerLimits;
 import net.minecraft.core.Holder;
@@ -15,8 +16,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-import java.util.OptionalDouble;
 
 /**
  * The actual per-player cap. After vanilla computes (and globally clamps) an attribute value in
@@ -59,17 +58,23 @@ public abstract class MixinAttributeInstance implements EntityOwned {
         if (!(this.attributefix$owner instanceof Player player)) {
             return;
         }
+        // Early-out: skip the registry lookup entirely when this player has no overrides at all.
+        if (!PlayerLimits.hasLimits(player.getUUID())) {
+            return;
+        }
         final ResourceLocation id = BuiltInRegistries.ATTRIBUTE.getKey(this.getAttribute().value());
+        final AttributeLimit limit = PlayerLimits.get(player.getUUID(), id);
+        if (limit == null) {
+            return;
+        }
         final double original = cir.getReturnValueD();
         double value = original;
 
-        final OptionalDouble max = PlayerLimits.getMax(player, id);
-        if (max.isPresent() && value > max.getAsDouble()) {
-            value = max.getAsDouble();
+        if (limit.max() != null && value > limit.max()) {
+            value = limit.max();
         }
-        final OptionalDouble min = PlayerLimits.getMin(player, id);
-        if (min.isPresent() && value < min.getAsDouble()) {
-            value = min.getAsDouble();
+        if (limit.min() != null && value < limit.min()) {
+            value = limit.min();
         }
         if (value != original) {
             cir.setReturnValue(value);

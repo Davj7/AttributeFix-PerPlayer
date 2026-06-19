@@ -70,16 +70,29 @@ public final class PlayerLimits {
     }
 
     public static OptionalDouble getMax(UUID player, ResourceLocation attribute) {
-        final AttributeLimit limit = lookup(player, attribute);
+        final AttributeLimit limit = get(player, attribute);
         return limit != null && limit.max() != null ? OptionalDouble.of(limit.max()) : OptionalDouble.empty();
     }
 
     public static OptionalDouble getMin(UUID player, ResourceLocation attribute) {
-        final AttributeLimit limit = lookup(player, attribute);
+        final AttributeLimit limit = get(player, attribute);
         return limit != null && limit.min() != null ? OptionalDouble.of(limit.min()) : OptionalDouble.empty();
     }
 
-    private static AttributeLimit lookup(UUID player, ResourceLocation attribute) {
+    /**
+     * @return true if this player has any override at all. Cheap outer-map check used by the clamp
+     *         mixin to skip the registry lookup entirely for the common (no-override) case.
+     */
+    public static boolean hasLimits(UUID player) {
+        return LIMITS.containsKey(player);
+    }
+
+    /**
+     * Fetches both bounds for a player/attribute pair in a single lookup.
+     *
+     * @return The {@link AttributeLimit}, or null when the player has no override for that attribute.
+     */
+    public static AttributeLimit get(UUID player, ResourceLocation attribute) {
         if (attribute == null) {
             return null;
         }

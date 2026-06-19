@@ -37,7 +37,10 @@ public abstract class MixinAttributeMap implements EntityOwned {
     // `AttributeInstance getInstance(Holder<Attribute> holder)`.
     @Inject(method = "getInstance(Lnet/minecraft/core/Holder;)Lnet/minecraft/world/entity/ai/attributes/AttributeInstance;", at = @At("RETURN"))
     private void attributefix$tagInstance(Holder<Attribute> holder, CallbackInfoReturnable<AttributeInstance> cir) {
-        if (cir.getReturnValue() instanceof EntityOwned owned) {
+        // Only write when the owner would actually change. This still picks up the transition from
+        // null (instances created mid-construction) to the real entity set at LivingEntity TAIL,
+        // while avoiding a redundant field write on every subsequent getInstance call.
+        if (cir.getReturnValue() instanceof EntityOwned owned && owned.attributefix$getOwner() != this.attributefix$owner) {
             owned.attributefix$setOwner(this.attributefix$owner);
         }
     }
