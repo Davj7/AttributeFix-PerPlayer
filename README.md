@@ -5,6 +5,40 @@
 Extends the maximum attribute ranges to allow for higher values. The documentation for this mod can be found [here](https://docs.darkhax.net/mods/attributefix/).
 <!-- description-end -->
 
+## Per-Player Attribute Limits (Fork Feature)
+
+> This is a fork of [AttributeFix by Darkhax](https://github.com/Darkhax-Minecraft/AttributeFix) (LGPL 2.1). In addition to the global range expansion, it adds **per-player** attribute limits.
+
+While the base mod raises the global ceiling shared by every entity, this fork lets you give individual players their own minimum and/or maximum for any attribute. Limits are stored per player (by UUID), persist with the world save, and are synced to clients so the HUD (armor bar, health, etc.) reflects the capped value — including on dedicated servers.
+
+### Command
+
+Requires permission level 2 (operator). Targets are resolved as player profiles, so you can edit **online or offline** players by name, UUID, or selector (`@a`, `@p`, ...).
+
+```
+/attributelimit max   <targets> <attribute> <value>   Set the highest value the attribute may reach
+/attributelimit min   <targets> <attribute> <value>   Set the lowest value the attribute may reach
+/attributelimit clear <targets> <attribute>           Remove both bounds (back to the global limit)
+/attributelimit get   <target>  <attribute>           Show the current bounds for a player
+```
+
+`<attribute>` is a registry id such as `minecraft:generic.armor` or `minecraft:generic.max_health`.
+
+### Examples
+
+```
+/attributelimit max Steve minecraft:generic.armor 30
+/attributelimit min Steve minecraft:generic.armor 10
+/attributelimit get Steve minecraft:generic.armor      -> min: 10.0, max: 30.0
+/attributelimit clear Steve minecraft:generic.armor
+```
+
+### Notes
+
+- `min` and `max` are independent — setting one keeps the other.
+- A per-player limit can only **narrow** the range within the global one: it cannot push a value above the mod's global maximum (which vanilla clamps to first). Since the global maximum is very high by default, this only matters if you lower an attribute's global limit.
+- Limits are saved in the world's data folder (`attributefix_player_limits.dat`) and are cleared when the server stops, so they do not leak between worlds.
+
 <!-- maven-start -->
 ## Maven Dependency
 
