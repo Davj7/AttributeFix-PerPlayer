@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.darkhax.attributefix.common.impl.AttributeLimitsSavedData;
 import net.darkhax.attributefix.common.impl.EntityOwned;
 import net.darkhax.attributefix.common.impl.PlayerLimits;
+import net.darkhax.attributefix.common.impl.network.LimitSync;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -66,6 +67,7 @@ public final class AttributeLimitCommand {
             data.setLimit(player.getUUID(), id, max);
             refresh(player, attribute);
         }
+        LimitSync.syncToAll(ctx.getSource().getServer());
         ctx.getSource().sendSuccess(() -> Component.literal(
                 "Set " + id + " limit to " + max + " for " + targets.size() + " player(s)."), true);
         return targets.size();
@@ -81,6 +83,7 @@ public final class AttributeLimitCommand {
             data.clearLimit(player.getUUID(), id);
             refresh(player, attribute);
         }
+        LimitSync.syncToAll(ctx.getSource().getServer());
         ctx.getSource().sendSuccess(() -> Component.literal(
                 "Cleared custom " + id + " limit for " + targets.size() + " player(s)."), true);
         return targets.size();
