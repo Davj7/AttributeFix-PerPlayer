@@ -42,18 +42,23 @@ public class AttributeLimitsSavedData extends SavedData {
 
     public static AttributeLimitsSavedData load(CompoundTag tag, HolderLookup.Provider registries) {
         final AttributeLimitsSavedData data = new AttributeLimitsSavedData();
-        final Map<UUID, Map<ResourceLocation, Double>> parsed = new HashMap<>();
+        final Map<UUID, Map<ResourceLocation, AttributeLimit>> parsed = new HashMap<>();
         final ListTag players = tag.getList("players", Tag.TAG_COMPOUND);
         for (int i = 0; i < players.size(); i++) {
             final CompoundTag playerTag = players.getCompound(i);
             final UUID uuid = playerTag.getUUID("uuid");
-            final Map<ResourceLocation, Double> limits = new HashMap<>();
+            final Map<ResourceLocation, AttributeLimit> limits = new HashMap<>();
             final ListTag limitList = playerTag.getList("limits", Tag.TAG_COMPOUND);
             for (int j = 0; j < limitList.size(); j++) {
                 final CompoundTag limitTag = limitList.getCompound(j);
                 final ResourceLocation id = ResourceLocation.tryParse(limitTag.getString("attribute"));
                 if (id != null) {
-                    limits.put(id, limitTag.getDouble("max"));
+                    final Double min = limitTag.contains("min") ? limitTag.getDouble("min") : null;
+                    final Double max = limitTag.contains("max") ? limitTag.getDouble("max") : null;
+                    final AttributeLimit limit = new AttributeLimit(min, max);
+                    if (!limit.isEmpty()) {
+                        limits.put(id, limit);
+                    }
                 }
             }
             if (!limits.isEmpty()) {
@@ -74,10 +79,18 @@ public class AttributeLimitsSavedData extends SavedData {
             final CompoundTag playerTag = new CompoundTag();
             playerTag.putUUID("uuid", uuid);
             final ListTag limitList = new ListTag();
-            limits.forEach((id, max) -> {
+            limits.forEach((id, limit) -> {
+                if (limit.isEmpty()) {
+                    return;
+                }
                 final CompoundTag limitTag = new CompoundTag();
                 limitTag.putString("attribute", id.toString());
-                limitTag.putDouble("max", max);
+                if (limit.min() != null) {
+                    limitTag.putDouble("min", limit.min());
+                }
+                if (limit.max() != null) {
+                    limitTag.putDouble("max", limit.max());
+                }
                 limitList.add(limitTag);
             });
             playerTag.put("limits", limitList);
@@ -88,18 +101,26 @@ public class AttributeLimitsSavedData extends SavedData {
     }
 
     /**
-     * Sets a player's limit and flags the data for saving. Updates the runtime view too.
+     * Sets a player's maximum and flags the data for saving. Updates the runtime view too.
      */
-    public void setLimit(UUID player, ResourceLocation attribute, double max) {
+    public void setMax(UUID player, ResourceLocation attribute, double max) {
         PlayerLimits.setMax(player, attribute, max);
         this.setDirty();
     }
 
     /**
-     * Clears a player's limit and flags the data for saving.
+     * Sets a player's minimum and flags the data for saving.
      */
-    public void clearLimit(UUID player, ResourceLocation attribute) {
-        PlayerLimits.clearMax(player, attribute);
+    public void setMin(UUID player, ResourceLocation attribute, double min) {
+        PlayerLimits.setMin(player, attribute, min);
+        this.setDirty();
+    }
+
+    /**
+     * Clears both bounds for a player/attribute and flags the data for saving.
+     */
+    public void clear(UUID player, ResourceLocation attribute) {
+        PlayerLimits.clear(player, attribute);
         this.setDirty();
     }
 }

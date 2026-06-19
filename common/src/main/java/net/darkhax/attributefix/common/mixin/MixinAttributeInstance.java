@@ -60,9 +60,19 @@ public abstract class MixinAttributeInstance implements EntityOwned {
             return;
         }
         final ResourceLocation id = BuiltInRegistries.ATTRIBUTE.getKey(this.getAttribute().value());
-        final OptionalDouble limit = PlayerLimits.getMax(player, id);
-        if (limit.isPresent() && cir.getReturnValueD() > limit.getAsDouble()) {
-            cir.setReturnValue(limit.getAsDouble());
+        final double original = cir.getReturnValueD();
+        double value = original;
+
+        final OptionalDouble max = PlayerLimits.getMax(player, id);
+        if (max.isPresent() && value > max.getAsDouble()) {
+            value = max.getAsDouble();
+        }
+        final OptionalDouble min = PlayerLimits.getMin(player, id);
+        if (min.isPresent() && value < min.getAsDouble()) {
+            value = min.getAsDouble();
+        }
+        if (value != original) {
+            cir.setReturnValue(value);
         }
     }
 }
