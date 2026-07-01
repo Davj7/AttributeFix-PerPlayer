@@ -16,20 +16,31 @@ While the base mod raises the global ceiling shared by every entity, this fork l
 Requires permission level 2 (operator). Targets are resolved as player profiles, so you can edit **online or offline** players by name, UUID, or selector (`@a`, `@p`, ...).
 
 ```
-/attributelimit max   <targets> <attribute> <value>   Set the highest value the attribute may reach
-/attributelimit min   <targets> <attribute> <value>   Set the lowest value the attribute may reach
-/attributelimit clear <targets> <attribute>           Remove both bounds (back to the global limit)
-/attributelimit get   <target>  <attribute>           Show the current bounds for a player
+/attributelimit max     <targets> <attribute> <value>   Set the highest value the attribute may reach
+/attributelimit min     <targets> <attribute> <value>   Set the lowest value the attribute may reach
+/attributelimit add max <targets> <attribute> <delta>   Shift the maximum relative to its current value
+/attributelimit add min <targets> <attribute> <delta>   Shift the minimum relative to its current value
+/attributelimit clear   <targets> <attribute>           Remove both bounds (back to the global limit)
+/attributelimit get     <target>  <attribute>           Show the current bounds for a player
 ```
 
 `<attribute>` is a registry id such as `minecraft:generic.armor` or `minecraft:generic.max_health`.
+
+The `add` form adjusts a bound **relative** to its current value, so `<delta>` may be negative. When the
+player has no custom bound for that attribute yet, the attribute's **global** limit (the server-wide value
+the base mod expands it to) is used as the base — e.g. `add max ... -5` on a fresh player yields
+`global - 5`. This makes adjustments compose across multiple sources, and lets you revert one by applying
+the opposite delta (apply `-5`, later undo with `+5`). Unlike `max`/`min`, `add` is **not** idempotent:
+running the same delta twice shifts the bound twice.
 
 ### Examples
 
 ```
 /attributelimit max Steve minecraft:generic.armor 30
 /attributelimit min Steve minecraft:generic.armor 10
-/attributelimit get Steve minecraft:generic.armor      -> min: 10.0, max: 30.0
+/attributelimit get Steve minecraft:generic.armor          -> min: 10.0, max: 30.0
+/attributelimit add max Steve minecraft:generic.armor -5   lower Steve's armor max by 5 (from 30 to 25)
+/attributelimit add max Bob minecraft:generic.armor -5     Bob has no bound yet -> global armor max minus 5
 /attributelimit clear Steve minecraft:generic.armor
 ```
 
